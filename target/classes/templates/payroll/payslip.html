@@ -1,0 +1,142 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Payslip - EmployeeSphere</title>
+    <!-- Tailwind CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        @media print {
+            body {
+                background: white !important;
+                color: black !important;
+            }
+            .no-print {
+                display: none !important;
+            }
+            .print-card {
+                border: none !important;
+                box-shadow: none !important;
+                background: white !important;
+                color: black !important;
+                max-width: 100% !important;
+                width: 100% !important;
+                padding: 0 !important;
+            }
+            .print-text-dark {
+                color: #000000 !important;
+            }
+            .print-text-muted {
+                color: #4b5563 !important;
+            }
+            .print-bg-light {
+                background-color: #f3f4f6 !important;
+            }
+            .print-border {
+                border-color: #d1d5db !important;
+            }
+        }
+    </style>
+</head>
+<body class="bg-slate-950 text-slate-100 min-h-screen flex items-center justify-center p-4">
+
+    <!-- Wrapper Card -->
+    <div class="w-full max-w-3xl bg-slate-900 border border-slate-800/80 rounded-2xl shadow-2xl p-8 sm:p-12 print-card relative overflow-hidden">
+        
+        <!-- Header -->
+        <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center border-b border-slate-800 pb-6 mb-8 print-border">
+            <div class="flex items-center gap-3">
+                <div class="w-10 h-10 rounded-lg bg-indigo-600 flex items-center justify-center text-white font-bold text-xl no-print">
+                    <i class="fa-solid fa-layer-group"></i>
+                </div>
+                <div>
+                    <h1 class="text-xl font-bold tracking-tight text-white print-text-dark">EmployeeSphere</h1>
+                    <p class="text-xs text-slate-500 print-text-muted">Enterprise HR Systems, Inc.</p>
+                </div>
+            </div>
+            <div class="mt-4 sm:mt-0 text-left sm:text-right">
+                <h2 class="text-lg font-bold text-indigo-400 print-text-dark uppercase tracking-wider">Salary Payslip</h2>
+                <p class="text-xs text-slate-400 print-text-muted" th:text="'Pay Period: ' + ${payslip.month} + '/' + ${payslip.year}">Pay Period: 06/2026</p>
+            </div>
+        </div>
+
+        <!-- Columns Metadata Grid -->
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-8 mb-8">
+            <!-- Left: Employee info -->
+            <div class="space-y-3.5">
+                <h3 class="text-xs font-bold uppercase tracking-wider text-slate-500 print-text-muted">Employee Details</h3>
+                <div class="space-y-1.5 text-sm">
+                    <p class="print-text-dark"><span class="text-slate-500 font-medium print-text-muted">Full Name:</span> <strong th:text="${employeeDetail.fullName}" class="text-slate-200">Jane Doe</strong></p>
+                    <p class="print-text-dark"><span class="text-slate-500 font-medium print-text-muted">Employee ID:</span> <span th:text="${employeeDetail.employeeId}" class="font-mono">EMP-004</span></p>
+                    <p class="print-text-dark"><span class="text-slate-500 font-medium print-text-muted">Designation:</span> <span th:text="${employeeDetail.designation}">Software Engineer</span></p>
+                    <p class="print-text-dark"><span class="text-slate-500 font-medium print-text-muted">Department:</span> <span th:text="${employeeDetail.departmentName}">Engineering</span></p>
+                </div>
+            </div>
+
+            <!-- Right: Payroll details status -->
+            <div class="space-y-3.5">
+                <h3 class="text-xs font-bold uppercase tracking-wider text-slate-500 print-text-muted">Payment Summary</h3>
+                <div class="space-y-1.5 text-sm">
+                    <p class="print-text-dark"><span class="text-slate-500 font-medium print-text-muted">Status:</span> <strong class="text-emerald-400" th:text="${payslip.status}">PAID</strong></p>
+                    <p class="print-text-dark"><span class="text-slate-500 font-medium print-text-muted">Disbursed Date:</span> <span th:text="${payslip.paidDate != null ? #temporals.format(payslip.paidDate, 'MMMM dd, yyyy') : 'Disbursement Pending'}">June 30, 2026</span></p>
+                    <p class="print-text-dark"><span class="text-slate-500 font-medium print-text-muted">Payment Type:</span> Direct Deposit</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Ledger Table Breakdown -->
+        <div class="border border-slate-800 rounded-xl overflow-hidden mb-8 print-border">
+            <table class="w-full text-left border-collapse text-sm">
+                <thead>
+                    <tr class="bg-slate-950/50 print-bg-light border-b border-slate-800 print-border text-slate-400 print-text-muted text-xs font-bold uppercase tracking-wider">
+                        <th class="p-4">Description</th>
+                        <th class="p-4 text-right">Earnings</th>
+                        <th class="p-4 text-right">Deductions</th>
+                    </tr>
+                </thead>
+                <tbody class="divide-y divide-slate-800 print-border">
+                    <tr class="print-text-dark">
+                        <td class="p-4 text-slate-200">Basic Annual Salary (Monthly Division)</td>
+                        <td class="p-4 text-right text-slate-300" th:text="'$' + ${#numbers.formatDecimal(payslip.basicSalary / 12, 1, 'COMMA', 2, 'POINT')}">$7,916.67</td>
+                        <td class="p-4 text-right text-slate-500">-</td>
+                    </tr>
+                    <tr class="print-text-dark">
+                        <td class="p-4 text-slate-200">Workplace Allowances (Bonuses, HRA)</td>
+                        <td class="p-4 text-right text-slate-300" th:text="'$' + ${#numbers.formatDecimal(payslip.allowances, 1, 'COMMA', 2, 'POINT')}">$500.00</td>
+                        <td class="p-4 text-right text-slate-500">-</td>
+                    </tr>
+                    <tr class="print-text-dark">
+                        <td class="p-4 text-slate-200">Deductions (Professional Tax, PF, Leaves)</td>
+                        <td class="p-4 text-right text-slate-500">-</td>
+                        <td class="p-4 text-right text-rose-400" th:text="'$' + ${#numbers.formatDecimal(payslip.deductions, 1, 'COMMA', 2, 'POINT')}">$200.00</td>
+                    </tr>
+                    <!-- Totals -->
+                    <tr class="bg-slate-950/20 print-bg-light font-bold text-white print-text-dark">
+                        <td class="p-4">Total Net Payout</td>
+                        <td colspan="2" class="p-4 text-right text-emerald-400 text-lg" th:text="'$' + ${#numbers.formatDecimal(payslip.netSalary, 1, 'COMMA', 2, 'POINT')}">$8,216.67</td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+
+        <!-- Footer terms / signs -->
+        <div class="flex flex-col sm:flex-row justify-between items-end border-t border-slate-800 pt-6 mt-8 print-border text-xs text-slate-500 print-text-muted gap-4">
+            <div>
+                <p>This is a system-generated salary slip and does not require a physical signature.</p>
+                <p class="mt-1 font-mono">Audit Hash: ES-PAYSLIP-[[${payslip.id}]]</p>
+            </div>
+            
+            <div class="flex gap-3 no-print">
+                <a th:href="@{/payroll}" class="px-4 py-2 rounded-xl border border-slate-800 hover:bg-slate-800 text-xs text-slate-400 hover:text-white transition">Cancel</a>
+                <button onclick="window.print()" class="px-4 py-2 rounded-xl bg-indigo-600 hover:bg-indigo-500 font-semibold text-xs text-white transition flex items-center gap-1.5 shadow-lg shadow-indigo-600/20">
+                    <i class="fa-solid fa-print"></i> Print Payslip
+                </button>
+            </div>
+        </div>
+
+    </div>
+
+</body>
+</html>

@@ -1,0 +1,128 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org" xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
+<head th:replace="~{fragments/layout :: head('Payroll &amp; Salary History')}"></head>
+<body class="bg-slate-900 text-slate-100 min-h-screen">
+
+    <div th:replace="~{fragments/layout :: layout-shell(~{::#main-content})}">
+        <div id="main-content" class="space-y-6">
+
+            <!-- Title header -->
+            <div>
+                <h1 class="text-2xl font-bold text-white tracking-tight">Payroll &amp; Salary Hub</h1>
+                <p class="text-xs text-slate-500 mt-1">Review compensation history, disburse monthly salaries, and retrieve dynamic payslips.</p>
+            </div>
+
+            <!-- Admin Payroll Generator panel (Secured for Admin/HR) -->
+            <div sec:authorize="hasAnyRole('ROLE_ADMIN', 'ROLE_HR')" class="glass-card p-6 rounded-2xl border border-slate-800/80 relative overflow-hidden">
+                <div class="absolute -top-12 -left-12 w-48 h-48 rounded-full bg-indigo-600/5 blur-3xl"></div>
+                <h3 class="font-bold text-sm text-indigo-400 uppercase tracking-wider border-b border-slate-800 pb-2 mb-4 relative z-10">Monthly Payroll Generator</h3>
+                
+                <form th:action="@{/payroll/generate}" method="POST" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4 relative z-10">
+                    <div>
+                        <label class="block text-[10px] font-bold text-slate-500 uppercase tracking-wider mb-2">Select Employee</label>
+                        <select name="employeeId" required class="w-full px-3.5 py-2.5 rounded-xl form-input-dark bg-slate-900 text-sm">
+                            <option value="">Choose...</option>
+                            <option th:each="emp : ${employees}" th:value="${emp.id}" th:text="${emp.fullName} + ' (' + ${emp.employeeId} + ')'"></option>
+                        </select>
+                    </div>
+
+                    <div>
+                        <label class="block text-[10px] font-bold text-slate-500 uppercase tracking-wider mb-2">Month</label>
+                        <select name="month" required class="w-full px-3.5 py-2.5 rounded-xl form-input-dark bg-slate-900 text-sm">
+                            <option th:each="m : ${#numbers.sequence(1, 12)}" th:value="${m}" th:text="${m}" th:selected="${m == currentMonth}"></option>
+                        </select>
+                    </div>
+
+                    <div>
+                        <label class="block text-[10px] font-bold text-slate-500 uppercase tracking-wider mb-2">Year</label>
+                        <input name="year" type="number" required th:value="${currentYear}" class="w-full px-3.5 py-2.5 rounded-xl form-input-dark text-sm">
+                    </div>
+
+                    <div>
+                        <label class="block text-[10px] font-bold text-slate-500 uppercase tracking-wider mb-2">Allowances ($)</label>
+                        <input name="allowances" type="number" step="0.01" value="0.00" class="w-full px-3.5 py-2.5 rounded-xl form-input-dark text-sm">
+                    </div>
+
+                    <div class="flex items-end gap-2">
+                        <div class="flex-1">
+                            <label class="block text-[10px] font-bold text-slate-500 uppercase tracking-wider mb-2">Deductions ($)</label>
+                            <input name="deductions" type="number" step="0.01" value="0.00" class="w-full px-3.5 py-2.5 rounded-xl form-input-dark text-sm">
+                        </div>
+                        <button type="submit" class="px-4 py-2.5 rounded-xl bg-indigo-600 hover:bg-indigo-500 font-semibold text-white transition text-sm">
+                            Generate
+                        </button>
+                    </div>
+                </form>
+            </div>
+
+            <!-- Payroll Records Log Table -->
+            <div class="glass-card rounded-2xl overflow-hidden border border-slate-800/80">
+                <h3 class="font-bold text-sm text-slate-300 px-6 py-4 border-b border-slate-800 flex items-center justify-between">
+                    <span>Generated Compensations Ledger</span>
+                    <span sec:authorize="!hasAnyRole('ROLE_ADMIN', 'ROLE_HR')" class="text-xs text-slate-500">Personal History</span>
+                </h3>
+                
+                <div class="overflow-x-auto">
+                    <table class="table-dark">
+                        <thead>
+                            <tr>
+                                <th>Employee</th>
+                                <th>Period</th>
+                                <th>Basic Salary</th>
+                                <th>Net Salary</th>
+                                <th>Status</th>
+                                <th>Payment Date</th>
+                                <th class="text-right">Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr th:each="pay : ${payrolls}">
+                                <td>
+                                    <div class="flex items-center gap-2">
+                                        <div class="w-8 h-8 rounded-full bg-slate-800 flex items-center justify-center font-bold text-white text-xs">
+                                            <span th:text="${#strings.substring(pay.employeeName, 0, 1)}">U</span>
+                                        </div>
+                                        <div>
+                                            <p class="font-semibold text-slate-200" th:text="${pay.employeeName}">Jane Doe</p>
+                                            <p class="text-[10px] text-slate-500 font-mono" th:text="${pay.employeeCode}">EMP-004</p>
+                                        </div>
+                                    </div>
+                                </td>
+                                <td th:text="${pay.month} + '/' + ${pay.year}" class="text-slate-300">06/2026</td>
+                                <td th:text="'$' + ${#numbers.formatDecimal(pay.basicSalary, 1, 'COMMA', 2, 'POINT')}" class="text-slate-300 font-semibold">$95,000.00</td>
+                                <td th:text="'$' + ${#numbers.formatDecimal(pay.netSalary, 1, 'COMMA', 2, 'POINT')}" class="text-emerald-400 font-bold">$95,000.00</td>
+                                <td>
+                                    <span class="px-2.5 py-0.5 rounded-full text-[10px] font-semibold"
+                                          th:classappend="${pay.status == 'PAID'} ? 'badge-present' : 'badge-pending'"
+                                          th:text="${pay.status}">PAID</span>
+                                </td>
+                                <td th:text="${pay.paidDate != null ? #temporals.format(pay.paidDate, 'MMM dd, yyyy') : 'Disbursement Pending'}" class="text-slate-400 text-xs">Jun 30, 2026</td>
+                                <td class="text-right">
+                                    <div class="flex justify-end gap-2.5">
+                                        <!-- Disburse Salary button (secured) -->
+                                        <form sec:authorize="hasAnyRole('ROLE_ADMIN', 'ROLE_HR')" th:if="${pay.status == 'DRAFT'}" th:action="@{/payroll/pay/{id}(id=${pay.id})}" method="POST" class="inline">
+                                            <button type="submit" class="px-3.5 py-1.5 rounded-lg bg-emerald-600/90 hover:bg-emerald-500 text-white font-semibold text-xs transition">
+                                                <i class="fa-solid fa-money-check-dollar"></i> Disburse
+                                            </button>
+                                        </form>
+                                        
+                                        <!-- View payslip -->
+                                        <a th:href="@{/payroll/payslip/{id}(id=${pay.id})}" class="px-3.5 py-1.5 rounded-lg bg-slate-900 border border-slate-800 text-indigo-400 hover:text-indigo-300 transition text-xs font-semibold">
+                                            <i class="fa-solid fa-file-invoice-dollar mr-1"></i> Payslip
+                                        </a>
+                                    </div>
+                                </td>
+                            </tr>
+                            <tr th:if="${#lists.isEmpty(payrolls)}">
+                                <td colspan="7" class="text-center py-8 text-slate-500 text-sm">No payroll records generated yet.</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+        </div>
+    </div>
+
+</body>
+</html>

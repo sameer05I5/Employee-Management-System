@@ -1,0 +1,36 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Error - EmployeeSphere</title>
+    <!-- Tailwind CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" th:href="@{/css/style.css}">
+</head>
+<body class="bg-slate-950 text-slate-100 min-h-screen flex items-center justify-center p-4">
+
+    <div class="w-full max-w-md bg-slate-900 border border-slate-800/80 rounded-2xl shadow-2xl p-8 text-center space-y-6 relative overflow-hidden animate-fade-in">
+        <!-- Decorative bg -->
+        <div class="absolute -top-12 -left-12 w-48 h-48 rounded-full bg-indigo-600/10 blur-3xl"></div>
+
+        <div class="w-16 h-16 rounded-full bg-rose-500/10 flex items-center justify-center text-rose-400 text-3xl mx-auto border border-rose-500/20">
+            <i class="fa-solid fa-triangle-exclamation"></i>
+        </div>
+
+        <div class="space-y-2 relative z-10">
+            <h1 class="text-3xl font-extrabold text-white" th:text="${status != null ? status : 'Error'}">500</h1>
+            <h2 class="text-lg font-bold text-slate-300">Something went wrong</h2>
+            <p class="text-sm text-slate-400 leading-relaxed" th:text="${message != null ? message : 'An unexpected error occurred on the server.'}">Error description.</p>
+        </div>
+
+        <div class="pt-4 relative z-10 flex justify-center">
+            <a th:href="@{/dashboard}" class="px-6 py-2.5 rounded-xl bg-indigo-600 hover:bg-indigo-500 font-semibold text-sm text-white transition shadow-lg shadow-indigo-600/20">
+                <i class="fa-solid fa-house mr-1"></i> Return Home
+            </a>
+        </div>
+    </div>
+
+</body>
+</html>

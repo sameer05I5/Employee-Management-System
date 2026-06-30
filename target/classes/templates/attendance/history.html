@@ -1,0 +1,58 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragments/layout :: head('My Attendance Logs')}"></head>
+<body class="bg-slate-900 text-slate-100 min-h-screen">
+
+    <div th:replace="~{fragments/layout :: layout-shell(~{::#main-content})}">
+        <div id="main-content" class="space-y-6">
+
+            <!-- Title header -->
+            <div>
+                <h1 class="text-2xl font-bold text-white tracking-tight">My Attendance Logs</h1>
+                <p class="text-xs text-slate-500 mt-1">Review your personal daily check-in logs, calculated hours, and status audits.</p>
+            </div>
+
+            <!-- Attendance Logs Table -->
+            <div class="glass-card rounded-2xl overflow-hidden border border-slate-800/80">
+                <div class="overflow-x-auto">
+                    <table class="table-dark">
+                        <thead>
+                            <tr>
+                                <th>Date</th>
+                                <th>Check-In Time</th>
+                                <th>Check-Out Time</th>
+                                <th>Hours Logged</th>
+                                <th>Status</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr th:each="log : ${attendanceHistory}">
+                                <td th:text="${#temporals.format(log.date, 'EEEE, MMMM dd, yyyy')}" class="font-semibold text-slate-200">Monday, Jun 29, 2026</td>
+                                <td th:text="${#temporals.format(log.checkIn, 'hh:mm a')}" class="text-slate-300">09:15 AM</td>
+                                <td th:text="${log.checkOut != null ? #temporals.format(log.checkOut, 'hh:mm a') : 'Active Session'}" 
+                                    th:classappend="${log.checkOut == null} ? 'text-indigo-400 font-medium' : 'text-slate-300'">
+                                    06:00 PM
+                                </td>
+                                <td th:text="${log.workingHours != null ? log.workingHours + ' hrs' : 'Running...'}" 
+                                    th:classappend="${log.workingHours == null} ? 'text-indigo-400 font-medium' : 'text-slate-200 font-semibold'">
+                                    8.75 hrs
+                                </td>
+                                <td>
+                                    <span class="px-2.5 py-0.5 rounded-full text-[10px] font-semibold"
+                                          th:classappend="${log.status == 'PRESENT'} ? 'badge-present' : (${log.status == 'LATE'} ? 'badge-late' : 'badge-absent')"
+                                          th:text="${log.status}">PRESENT</span>
+                                </td>
+                            </tr>
+                            <tr th:if="${#lists.isEmpty(attendanceHistory)}">
+                                <td colspan="5" class="text-center py-8 text-slate-500 text-sm">No attendance check-ins logged. Check in from the dashboard!</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+        </div>
+    </div>
+
+</body>
+</html>
