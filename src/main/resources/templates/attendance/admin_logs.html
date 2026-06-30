@@ -1,0 +1,70 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org" xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
+<head th:replace="~{fragments/layout :: head('Company Attendance Logs')}"></head>
+<body class="bg-slate-900 text-slate-100 min-h-screen">
+
+    <div th:replace="~{fragments/layout :: layout-shell(~{::#main-content})}">
+        <div id="main-content" class="space-y-6">
+
+            <!-- Title header -->
+            <div>
+                <h1 class="text-2xl font-bold text-white tracking-tight">Company Attendance Logs</h1>
+                <p class="text-xs text-slate-500 mt-1">Audit presence, late entry flags, and working hours for all active employees.</p>
+            </div>
+
+            <!-- Attendance Logs Table -->
+            <div class="glass-card rounded-2xl overflow-hidden border border-slate-800/80">
+                <div class="overflow-x-auto">
+                    <table class="table-dark">
+                        <thead>
+                            <tr>
+                                <th>Employee</th>
+                                <th>Date</th>
+                                <th>Check-In</th>
+                                <th>Check-Out</th>
+                                <th>Hours</th>
+                                <th>Status</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr th:each="log : ${allAttendance}">
+                                <td>
+                                    <div class="flex items-center gap-2">
+                                        <div class="w-8 h-8 rounded-full bg-slate-800 flex items-center justify-center font-bold text-white text-xs">
+                                            <span th:text="${#strings.substring(log.employeeName, 0, 1)}">U</span>
+                                        </div>
+                                        <div>
+                                            <p class="font-semibold text-slate-200" th:text="${log.employeeName}">Alexander Wright</p>
+                                            <p class="text-[10px] text-slate-500 font-mono" th:text="${log.employeeCode}">EMP-001</p>
+                                        </div>
+                                    </div>
+                                </td>
+                                <td th:text="${#temporals.format(log.date, 'MMM dd, yyyy')}" class="text-slate-300">Jun 29, 2026</td>
+                                <td th:text="${#temporals.format(log.checkIn, 'hh:mm a')}" class="text-slate-300">09:15 AM</td>
+                                <td th:text="${log.checkOut != null ? #temporals.format(log.checkOut, 'hh:mm a') : 'Active'}" 
+                                    th:classappend="${log.checkOut == null} ? 'text-indigo-400 font-medium' : 'text-slate-300'">
+                                    06:00 PM
+                                </td>
+                                <td th:text="${log.workingHours != null ? log.workingHours + ' hrs' : 'Running...'}" 
+                                    th:classappend="${log.workingHours == null} ? 'text-indigo-400 font-medium' : 'text-slate-200 font-semibold'">
+                                    8.75 hrs
+                                </td>
+                                <td>
+                                    <span class="px-2.5 py-0.5 rounded-full text-[10px] font-semibold"
+                                          th:classappend="${log.status == 'PRESENT'} ? 'badge-present' : (${log.status == 'LATE'} ? 'badge-late' : 'badge-absent')"
+                                          th:text="${log.status}">PRESENT</span>
+                                </td>
+                            </tr>
+                            <tr th:if="${#lists.isEmpty(allAttendance)}">
+                                <td colspan="6" class="text-center py-8 text-slate-500 text-sm">No attendance check-ins logged globally.</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+        </div>
+    </div>
+
+</body>
+</html>

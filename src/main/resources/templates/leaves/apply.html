@@ -1,0 +1,74 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragments/layout :: head('Apply Leave')}"></head>
+<body class="bg-slate-900 text-slate-100 min-h-screen">
+
+    <div th:replace="~{fragments/layout :: layout-shell(~{::#main-content})}">
+        <div id="main-content" class="space-y-6 max-w-xl mx-auto">
+
+            <!-- Title -->
+            <div>
+                <h1 class="text-2xl font-bold text-white tracking-tight">Request Time-Off</h1>
+                <p class="text-xs text-slate-500 mt-1">Submit your leave request details to your engineering manager.</p>
+            </div>
+
+            <!-- Form Card -->
+            <div class="glass-card p-8 rounded-2xl border border-slate-800/80 relative overflow-hidden">
+                <!-- Decorative background -->
+                <div class="absolute -top-12 -left-12 w-48 h-48 rounded-full bg-indigo-600/5 blur-3xl"></div>
+
+                <!-- Error alerts -->
+                <div th:if="${error}" class="mb-6 p-4 rounded-xl bg-red-500/10 border border-red-500/20 text-red-400 text-sm flex gap-3 items-center">
+                    <i class="fa-solid fa-circle-exclamation text-lg"></i>
+                    <span th:text="${error}">Error details</span>
+                </div>
+
+                <form th:action="@{/leaves/apply}" th:object="${leaveForm}" method="POST" class="space-y-5 relative z-10">
+                    
+                    <input type="hidden" th:field="*{employeeId}">
+
+                    <div>
+                        <label for="leaveType" class="block text-xs font-semibold text-slate-400 uppercase tracking-wider mb-2">Leave Category</label>
+                        <select id="leaveType" th:field="*{leaveType}" 
+                                class="w-full px-4 py-3 rounded-xl form-input-dark bg-slate-900">
+                            <option value="SICK">Sick Leave</option>
+                            <option value="CASUAL">Casual Leave</option>
+                            <option value="PAID">Paid Vacation</option>
+                        </select>
+                    </div>
+
+                    <div class="grid grid-cols-2 gap-4">
+                        <div>
+                            <label for="startDate" class="block text-xs font-semibold text-slate-400 uppercase tracking-wider mb-2">Start Date</label>
+                            <input id="startDate" th:field="*{startDate}" type="date" required 
+                                   class="w-full px-4 py-3 rounded-xl form-input-dark text-slate-200">
+                        </div>
+                        <div>
+                            <label for="endDate" class="block text-xs font-semibold text-slate-400 uppercase tracking-wider mb-2">End Date</label>
+                            <input id="endDate" th:field="*{endDate}" type="date" required 
+                                   class="w-full px-4 py-3 rounded-xl form-input-dark text-slate-200">
+                        </div>
+                    </div>
+
+                    <div>
+                        <label for="reason" class="block text-xs font-semibold text-slate-400 uppercase tracking-wider mb-2">Reason / Comments</label>
+                        <textarea id="reason" th:field="*{reason}" required rows="4" placeholder="Brief explanation of your leave request..." 
+                                  class="w-full px-4 py-3 rounded-xl form-input-dark"></textarea>
+                    </div>
+
+                    <!-- Actions -->
+                    <div class="pt-4 border-t border-slate-800 flex justify-end gap-3">
+                        <a th:href="@{/leaves}" class="px-5 py-2.5 rounded-xl border border-slate-800 hover:bg-slate-800 font-semibold text-xs text-slate-400 hover:text-white transition">Cancel</a>
+                        <button type="submit" class="px-6 py-2.5 rounded-xl bg-indigo-600 hover:bg-indigo-500 font-semibold text-xs text-white transition flex items-center gap-2 shadow-lg shadow-indigo-600/25">
+                            <i class="fa-solid fa-paper-plane"></i> Submit Request
+                        </button>
+                    </div>
+
+                </form>
+            </div>
+
+        </div>
+    </div>
+
+</body>
+</html>

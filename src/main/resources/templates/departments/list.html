@@ -1,0 +1,56 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org" xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
+<head th:replace="~{fragments/layout :: head('Departments')}"></head>
+<body class="bg-slate-900 text-slate-100 min-h-screen">
+
+    <div th:replace="~{fragments/layout :: layout-shell(~{::#main-content})}">
+        <div id="main-content" class="space-y-6">
+
+            <!-- Title header -->
+            <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+                <div>
+                    <h1 class="text-2xl font-bold text-white tracking-tight">Department Management</h1>
+                    <p class="text-xs text-slate-500 mt-1">Audit structure departments, heads, and headcounts.</p>
+                </div>
+                
+                <a sec:authorize="hasAnyRole('ROLE_ADMIN', 'ROLE_HR')" th:href="@{/departments/new}" class="w-full sm:w-auto px-4 py-2.5 rounded-xl bg-indigo-600 hover:bg-indigo-500 font-semibold text-white transition flex items-center justify-center gap-2 shadow-lg shadow-indigo-600/20">
+                    <i class="fa-solid fa-folder-plus"></i> Create Department
+                </a>
+            </div>
+
+            <!-- Department Grid -->
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                <div th:each="dept : ${departments}" class="glass-card glass-card-hover p-6 rounded-2xl flex flex-col justify-between min-h-[180px]">
+                    <div>
+                        <div class="flex justify-between items-start">
+                            <span th:text="${dept.code}" class="px-2 py-0.5 rounded bg-indigo-600/15 border border-indigo-500/35 text-indigo-400 text-[10px] font-mono font-bold">ENG</span>
+                            <span th:text="${dept.employeeCount} + ' Members'" class="text-xs text-slate-500">12 Members</span>
+                        </div>
+                        <h3 th:text="${dept.name}" class="text-lg font-bold text-slate-200 mt-2">Engineering</h3>
+                        <p th:text="${dept.description}" class="text-xs text-slate-400 mt-2 leading-relaxed line-clamp-2">Development division description...</p>
+                    </div>
+
+                    <div class="border-t border-slate-800/80 pt-4 mt-4 flex justify-between items-center">
+                        <div>
+                            <p class="text-[9px] uppercase font-bold text-slate-500">Department Head</p>
+                            <p th:text="${dept.departmentHeadName}" class="text-xs text-slate-300 font-medium">Alexander Wright</p>
+                        </div>
+                        <div sec:authorize="hasAnyRole('ROLE_ADMIN', 'ROLE_HR')" class="flex gap-2">
+                            <a th:href="@{/departments/edit/{id}(id=${dept.id})}" class="p-1.5 rounded-lg bg-slate-900 border border-slate-800 text-indigo-400 hover:text-indigo-300 transition" title="Edit Department">
+                                <i class="fa-solid fa-pen-to-square text-xs"></i>
+                            </a>
+                            <a th:href="@{/departments/delete/{id}(id=${dept.id})}" onclick="return confirm('Are you sure you want to delete this department? Employees will be unassigned.')" class="p-1.5 rounded-lg bg-slate-900 border border-slate-800 text-rose-400 hover:text-rose-300 transition" title="Delete Department">
+                                <i class="fa-solid fa-trash-can text-xs"></i>
+                            </a>
+                        </div>
+                    </div>
+                </div>
+
+                <div th:if="${#lists.isEmpty(departments)}" class="col-span-full text-center py-12 text-slate-500 text-sm">No departments registered.</div>
+            </div>
+
+        </div>
+    </div>
+
+</body>
+</html>

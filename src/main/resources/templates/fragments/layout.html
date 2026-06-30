@@ -1,0 +1,198 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org" xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
+<head th:fragment="head(title)">
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title th:text="${title} + ' - EmployeeSphere'">EmployeeSphere</title>
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        brand: {
+                            50: '#f5f3ff',
+                            100: '#e0e7ff',
+                            600: '#4f46e5',
+                            700: '#4338ca',
+                            900: '#312e81',
+                        }
+                    }
+                }
+            }
+        }
+    </script>
+    <!-- Custom CSS -->
+    <link rel="stylesheet" th:href="@{/css/style.css}">
+    <!-- FontAwesome for Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- Chart.js for beautiful analytics -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+</head>
+<body class="bg-slate-900 text-slate-100 min-h-screen flex flex-col">
+
+    <!-- Global Layout Shell -->
+    <div class="flex flex-1 overflow-hidden" th:fragment="layout-shell(content)">
+        
+        <!-- Sidebar Navigation -->
+        <aside class="w-64 bg-slate-950/80 border-r border-slate-800/60 hidden md:flex flex-col z-20">
+            <!-- Brand Logo -->
+            <div class="h-16 flex items-center px-6 border-b border-slate-800/60 gap-3">
+                <div class="w-8 h-8 rounded-lg bg-indigo-600 flex items-center justify-center text-white font-bold text-lg">
+                    <i class="fa-solid fa-layer-group"></i>
+                </div>
+                <span class="font-bold text-lg tracking-wider bg-gradient-to-r from-indigo-400 to-violet-400 bg-clip-text text-transparent">EmployeeSphere</span>
+            </div>
+
+            <!-- Profile Overview Quick Card -->
+            <div class="p-5 border-b border-slate-800/60 flex items-center gap-3">
+                <div class="w-10 h-10 rounded-full bg-indigo-900 flex items-center justify-center font-bold text-white text-md border border-indigo-500/30">
+                    <span th:text="${#strings.substring(employee.fullName, 0, 1)}">U</span>
+                </div>
+                <div class="overflow-hidden">
+                    <h4 class="font-semibold text-sm truncate text-slate-200" th:text="${employee.fullName}">User Full Name</h4>
+                    <p class="text-xs text-slate-500 truncate" th:text="${employee.designation}">Designation</p>
+                </div>
+            </div>
+
+            <!-- Sidebar Links -->
+            <nav class="flex-1 px-4 py-6 space-y-1.5 overflow-y-auto">
+                <a th:href="@{/dashboard}" class="flex items-center gap-3 px-4 py-2.5 rounded-lg text-sm font-medium transition text-slate-400 hover:text-slate-200 hover:bg-slate-900/60"
+                   th:classappend="${#request.requestURI == '/' or #request.requestURI == '/dashboard'} ? 'sidebar-link-active' : ''">
+                    <i class="fa-solid fa-chart-pie w-5"></i>
+                    <span>Dashboard</span>
+                </a>
+
+                <!-- Employees directory (accessible to everyone, but writing forms requires ADMIN/HR) -->
+                <a th:href="@{/employees}" class="flex items-center gap-3 px-4 py-2.5 rounded-lg text-sm font-medium transition text-slate-400 hover:text-slate-200 hover:bg-slate-900/60"
+                   th:classappend="${#strings.startsWith(#request.requestURI, '/employees')} ? 'sidebar-link-active' : ''">
+                    <i class="fa-solid fa-user-group w-5"></i>
+                    <span>Employees</span>
+                </a>
+
+                <!-- Attendance -->
+                <a th:href="@{/attendance/history}" class="flex items-center gap-3 px-4 py-2.5 rounded-lg text-sm font-medium transition text-slate-400 hover:text-slate-200 hover:bg-slate-900/60"
+                   th:classappend="${#strings.startsWith(#request.requestURI, '/attendance/history')} ? 'sidebar-link-active' : ''">
+                    <i class="fa-solid fa-calendar-check w-5"></i>
+                    <span>My Attendance</span>
+                </a>
+                
+                <a sec:authorize="hasAnyRole('ROLE_ADMIN', 'ROLE_HR')" th:href="@{/attendance/admin-logs}" class="flex items-center gap-3 px-4 py-2.5 rounded-lg text-sm font-medium transition text-slate-400 hover:text-slate-200 hover:bg-slate-900/60"
+                   th:classappend="${#strings.startsWith(#request.requestURI, '/attendance/admin-logs')} ? 'sidebar-link-active' : ''">
+                    <i class="fa-solid fa-clock-rotate-left w-5"></i>
+                    <span>Attendance Logs</span>
+                </a>
+
+                <!-- Leave -->
+                <a th:href="@{/leaves}" class="flex items-center gap-3 px-4 py-2.5 rounded-lg text-sm font-medium transition text-slate-400 hover:text-slate-200 hover:bg-slate-900/60"
+                   th:classappend="${#request.requestURI == '/leaves' or #request.requestURI == '/leaves/apply'} ? 'sidebar-link-active' : ''">
+                    <i class="fa-solid fa-file-signature w-5"></i>
+                    <span>Leave Requests</span>
+                </a>
+
+                <!-- Approvals tab (shown if Manager/HR/Admin) -->
+                <a sec:authorize="hasAnyRole('ROLE_ADMIN', 'ROLE_HR', 'ROLE_MANAGER')" th:href="@{/leaves/pending}" class="flex items-center gap-3 px-4 py-2.5 rounded-lg text-sm font-medium transition text-slate-400 hover:text-slate-200 hover:bg-slate-900/60"
+                   th:classappend="${#strings.startsWith(#request.requestURI, '/leaves/pending')} ? 'sidebar-link-active' : ''">
+                    <i class="fa-solid fa-envelope-open-text w-5"></i>
+                    <span>Pending Approvals</span>
+                </a>
+
+                <!-- Department Management -->
+                <a th:href="@{/departments}" class="flex items-center gap-3 px-4 py-2.5 rounded-lg text-sm font-medium transition text-slate-400 hover:text-slate-200 hover:bg-slate-900/60"
+                   th:classappend="${#strings.startsWith(#request.requestURI, '/departments')} ? 'sidebar-link-active' : ''">
+                    <i class="fa-solid fa-sitemap w-5"></i>
+                    <span>Departments</span>
+                </a>
+
+                <!-- Payroll Management -->
+                <a th:href="@{/payroll}" class="flex items-center gap-3 px-4 py-2.5 rounded-lg text-sm font-medium transition text-slate-400 hover:text-slate-200 hover:bg-slate-900/60"
+                   th:classappend="${#strings.startsWith(#request.requestURI, '/payroll')} ? 'sidebar-link-active' : ''">
+                    <i class="fa-solid fa-wallet w-5"></i>
+                    <span>Payroll / Salary</span>
+                </a>
+            </nav>
+
+            <!-- Bottom settings / logout -->
+            <div class="p-4 border-t border-slate-800/60 space-y-1">
+                <a th:href="@{/employees/view/__${employee.id}__}" class="flex items-center gap-3 px-4 py-2 rounded-lg text-sm font-medium text-slate-400 hover:text-slate-200 hover:bg-slate-900/60">
+                    <i class="fa-solid fa-gears w-5"></i>
+                    <span>My Profile</span>
+                </a>
+                <a th:href="@{/logout}" class="flex items-center gap-3 px-4 py-2 rounded-lg text-sm font-medium text-rose-400 hover:bg-rose-500/10 transition">
+                    <i class="fa-solid fa-arrow-right-from-bracket w-5"></i>
+                    <span>Logout</span>
+                </a>
+            </div>
+        </aside>
+
+        <!-- Main Wrapper Panel -->
+        <div class="flex-1 flex flex-col overflow-hidden">
+            
+            <!-- Top Header Navbar -->
+            <header class="h-16 bg-slate-950/40 border-b border-slate-800/60 flex items-center justify-between px-6 z-10">
+                <div class="flex items-center gap-4">
+                    <!-- Mobile Hamburger -->
+                    <button class="md:hidden text-slate-400 hover:text-white focus:outline-none">
+                        <i class="fa-solid fa-bars text-lg"></i>
+                    </button>
+                    <!-- Current Date Display -->
+                    <div class="hidden sm:flex items-center gap-2 text-xs text-slate-400 bg-slate-900/80 px-3 py-1.5 rounded-lg border border-slate-800/50">
+                        <i class="fa-regular fa-clock text-indigo-400"></i>
+                        <span id="header-datetime-display">Tuesday, Jun 30, 2026</span>
+                    </div>
+                </div>
+
+                <!-- Right Utility Icons -->
+                <div class="flex items-center gap-4">
+                    <!-- Notifications Dropdown Trigger -->
+                    <div class="relative">
+                        <button class="w-10 h-10 rounded-full flex items-center justify-center text-slate-400 hover:text-white bg-slate-900/80 border border-slate-800/50 hover:bg-slate-800 transition">
+                            <i class="fa-regular fa-bell"></i>
+                            <!-- Indicator -->
+                            <span th:if="${unreadNotificationCount != null and unreadNotificationCount > 0}"
+                                  th:text="${unreadNotificationCount}"
+                                  class="absolute -top-1 -right-1 w-5 h-5 bg-indigo-600 text-white rounded-full flex items-center justify-center text-[10px] font-bold border border-slate-900">
+                                3
+                            </span>
+                        </button>
+                    </div>
+
+                    <!-- User Detail / Profile Shortcut -->
+                    <a th:href="@{/employees/view/__${employee.id}__}" class="flex items-center gap-2 pl-2 border-l border-slate-800">
+                        <div class="w-8 h-8 rounded-full bg-gradient-to-tr from-indigo-500 to-violet-500 flex items-center justify-center font-bold text-white text-sm">
+                            <span th:text="${#strings.substring(employee.fullName, 0, 1)}">U</span>
+                        </div>
+                        <span class="hidden lg:inline text-sm font-medium text-slate-300" th:text="${employee.fullName}">User Name</span>
+                    </a>
+                </div>
+            </header>
+
+            <!-- Page Main Inner Content -->
+            <main class="flex-1 overflow-y-auto bg-slate-900 p-6 md:p-8">
+                <!-- Page body replaces here -->
+                <div th:replace="${content}"></div>
+            </main>
+
+        </div>
+    </div>
+
+    <!-- Toast notifications structure -->
+    <div id="toast-container"></div>
+
+    <script th:src="@{/js/app.js}"></script>
+    <script>
+        // Update header clock in real time
+        function updateHeaderClock() {
+            const display = document.getElementById("header-datetime-display");
+            if (display) {
+                const now = new Date();
+                const options = { weekday: 'long', year: 'numeric', month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit', second: '2-digit' };
+                display.textContent = now.toLocaleDateString('en-US', options);
+            }
+        }
+        setInterval(updateHeaderClock, 1000);
+        updateHeaderClock();
+    </script>
+</body>
+</html>
